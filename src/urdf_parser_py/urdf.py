@@ -482,6 +482,321 @@ xmlr.add_type('transmission',
                                     [Transmission, PR2Transmission]))
 
 
+class SensorNoise(xmlr.Object):
+    """ New format: https://wiki.ros.org/urdf/XML/sensor/proposals """
+    TYPES = ['unknown', 'none', 'gaussian', 'gaussian_quantized']
+
+    def __init__(self, noise_type=None, mean=None, stddev=None,
+                 bias_mean=None, bias_stddev=None,
+                 dynamic_bias_stddev=None, dynamic_bias_correlation_time=None, precision=None):
+        self.type = noise_type
+        self.mean = mean
+        self.stddev = stddev
+        self.bias_mean = bias_mean
+        self.bias_stddev = bias_stddev
+        self.dynamic_bias_stddev = dynamic_bias_stddev
+        self.dynamic_bias_correlation_time = dynamic_bias_correlation_time
+        self.precision = precision
+
+    def check_valid(self):
+        assert self.type in self.TYPES, "Invalid noise type: {}".format(self.type)  # noqa
+
+    # Aliases
+    @property
+    def noise_type(self): return self.type
+
+    @noise_type.setter
+    def noise_type(self, value): self.type = value
+
+xmlr.reflect(SensorNoise, tag='noise', params=[
+    xmlr.Attribute('type', str),
+    xmlr.Attribute('mean', float, False, 0),
+    xmlr.Attribute('stddev', float, False, 0),
+    xmlr.Attribute('bias_mean', float, False, 0),
+    xmlr.Attribute('bias_stddev', float, False, 0),
+    xmlr.Attribute('dynamic_bias_stddev', float, False, 0),
+    xmlr.Attribute('dynamic_bias_correlation_time', float, False, 0),
+    xmlr.Attribute('precision', float, False, 0),
+])
+
+
+class CameraImage(xmlr.Object):
+    """ New format: https://wiki.ros.org/urdf/XML/sensor/proposals """
+
+    def __init__(self, width=None, height=None, image_format=None,
+                 hfov=None, near=None, far=None):
+        self.width = width
+        self.height = height
+        self.format = image_format
+        self.hfov = hfov
+        self.near = near
+        self.far = far
+
+xmlr.reflect(CameraImage, tag='image', params=[
+    xmlr.Attribute('width', float), # int not allowed by xmlr
+    xmlr.Attribute('height', float), # int not allowed by xmlr
+    xmlr.Attribute('format', str),
+    xmlr.Attribute('hfov', float),
+    xmlr.Attribute('near', float),
+    xmlr.Attribute('far', float),
+])
+
+class SensorCamera(xmlr.Object):
+    """ New format: https://wiki.ros.org/urdf/XML/sensor/proposals """
+
+    def __init__(self, image=None):
+        self.image = image
+
+xmlr.reflect(SensorCamera, tag='camera', params=[
+    xmlr.Element('image', CameraImage),
+])
+
+
+class SingleRay(xmlr.Object):
+    """ New format: https://wiki.ros.org/urdf/XML/sensor/proposals """
+
+    def __init__(self, samples=None, resolution=None, min_angle=None, max_angle=None):
+        self.samples = samples
+        self.resolution = resolution
+        self.min_angle = min_angle
+        self.max_angle = max_angle
+
+xmlr.reflect(SingleRay, tag='horizontal', params=[
+    xmlr.Attribute('samples', float, False, 1), # int not allowed by xmlr
+    xmlr.Attribute('resolution', float, False, 1),
+    xmlr.Attribute('min_angle', float, False, 0),
+    xmlr.Attribute('max_angle', float, False, 0),
+])
+xmlr.reflect(SingleRay, tag='vertical', params=[
+    xmlr.Attribute('samples', float, False, 1), # int not allowed by xmlr
+    xmlr.Attribute('resolution', float, False, 1),
+    xmlr.Attribute('min_angle', float, False, 0),
+    xmlr.Attribute('max_angle', float, False, 0),
+])
+
+class RayRange(xmlr.Object):
+    """ New format: https://wiki.ros.org/urdf/XML/sensor/proposals """
+
+    def __init__(self, mini=None, maxi=None, resolution=None):
+        self.min = mini
+        self.max = maxi
+        self.resolution = resolution
+
+xmlr.reflect(RayRange, tag='range', params=[
+    xmlr.Element('min', float, False, 0),
+    xmlr.Element('max', float, False),
+    xmlr.Element('resolution', float, False),
+])
+
+class SensorRay(xmlr.Object):
+    """ New format: https://wiki.ros.org/urdf/XML/sensor/proposals """
+
+    def __init__(self, horizontal=None, vertical=None, rayrange=None):
+        self.horizontal = horizontal
+        self.vertical = vertical
+        self.range = rayrange
+
+xmlr.reflect(SensorRay, tag='ray', params=[
+    xmlr.Element('horizontal', SingleRay, False),
+    xmlr.Element('vertical', SingleRay, False),
+    xmlr.Element('range', RayRange, False),
+])
+
+
+class IMUgyro(xmlr.Object):
+    """ New format: https://wiki.ros.org/urdf/XML/sensor/proposals """
+
+    def __init__(self, noise=None):
+        self.noise = noise
+
+xmlr.reflect(IMUgyro, tag='gyro', params=[
+    xmlr.Element('noise', SensorNoise, False),
+])
+
+class IMUacceleration(xmlr.Object):
+    """ New format: https://wiki.ros.org/urdf/XML/sensor/proposals """
+
+    def __init__(self, noise=None):
+        self.noise = noise
+
+xmlr.reflect(IMUacceleration, tag='acceleration', params=[
+    xmlr.Element('noise', SensorNoise, False),
+])
+
+class SensorIMU(xmlr.Object):
+    """ New format: https://wiki.ros.org/urdf/XML/sensor/proposals """
+
+    def __init__(self, gyro=None, acceleration=None):
+        self.gyro = gyro
+        self.acceleration = acceleration
+
+xmlr.reflect(SensorIMU, tag='imu', params=[
+    xmlr.Element('gyro', IMUgyro, False),
+    xmlr.Element('acceleration', IMUacceleration, False),
+])
+
+
+class SensorMagnetometer(xmlr.Object):
+    """ New format: https://wiki.ros.org/urdf/XML/sensor/proposals """
+
+    def __init__(self, noise=None):
+        self.noise = noise
+
+xmlr.reflect(SensorMagnetometer, tag='magnetometer', params=[
+    xmlr.Element('noise', SensorNoise, False),
+])
+
+
+class GPSpostion(xmlr.Object):
+    """ New format: https://wiki.ros.org/urdf/XML/sensor/proposals """
+
+    def __init__(self, noise=None):
+        self.noise = noise
+
+xmlr.reflect(GPSpostion, tag='position_sensing', params=[
+    xmlr.Element('noise', SensorNoise, False),
+])
+
+class GPSvelocity(xmlr.Object):
+    """ New format: https://wiki.ros.org/urdf/XML/sensor/proposals """
+
+    def __init__(self, noise=None):
+        self.noise = noise
+
+xmlr.reflect(GPSvelocity, tag='velocity_sensing', params=[
+    xmlr.Element('noise', SensorNoise, False),
+])
+
+class SensorGPS(xmlr.Object):
+    """ New format: https://wiki.ros.org/urdf/XML/sensor/proposals """
+
+    def __init__(self, position_sensing=None, velocity_sensing=None):
+        self.position_sensing = position_sensing
+        self.velocity_sensing = velocity_sensing
+
+xmlr.reflect(SensorGPS, tag='imu', params=[
+    xmlr.Element('position_sensing', GPSpostion, False),
+    xmlr.Element('velocity_sensing', GPSvelocity, False),
+])
+
+
+class SensorForceTorque(xmlr.Object):
+    """ New format: https://wiki.ros.org/urdf/XML/sensor/proposals """
+    TYPES = ['parent_to_child', 'child_to_parent']
+
+    def __init__(self, frame=None, measure_direction=None):
+        self.frame = frame
+        self.measure_direction = measure_direction
+
+    def check_valid(self):
+        assert self.measure_direction in self.TYPES, "Invalid measure_direction: {}".format(self.measure_direction)  # noqa
+
+xmlr.reflect(SensorForceTorque, tag='froce_torque', params=[
+    xmlr.Element('frame', str, False),
+    xmlr.Element('measure_direction', str, False),
+])
+
+
+class SensorContact(xmlr.Object):
+    """ New format: https://wiki.ros.org/urdf/XML/sensor/proposals """
+
+    def __init__(self, collision=None):
+        self.collision = collision
+
+xmlr.reflect(SensorContact, tag='contact', params=[
+    xmlr.Element('collision', str, False),
+])
+
+
+class SensorSonar(xmlr.Object):
+    """ New format: https://wiki.ros.org/urdf/XML/sensor/proposals """
+
+    def __init__(self, mini=None, maxi=None, radius=None):
+        self.min = mini
+        self.max = maxi
+        self.radius = radius
+
+xmlr.reflect(SensorSonar, tag='sonar', params=[
+    xmlr.Element('min', float, False),
+    xmlr.Element('max', float, False),
+    xmlr.Element('radius', float, False),
+])
+
+
+class SensorRFIDtag(xmlr.Object):
+    """ New format: https://wiki.ros.org/urdf/XML/sensor/proposals """
+
+    def __init__(self):
+        pass
+
+xmlr.reflect(SensorRFIDtag, tag='rfidtag', params=[])
+
+
+class SensorRFID(xmlr.Object):
+    """ New format: https://wiki.ros.org/urdf/XML/sensor/proposals """
+
+    def __init__(self):
+        pass
+
+xmlr.reflect(SensorRFID, tag='rfid', params=[])
+
+
+class Sensor(xmlr.Object):
+    """ New format: https://wiki.ros.org/urdf/XML/sensor/proposals """
+    TYPES = ['unknown', 'camera', 'ray', 'imu', 'magnetometer', 'gps',
+             'force_torque', 'contact', 'sonar', 'rfidtag', 'rfid']
+
+    def __init__(self, name=None, sensor_type=None, sensor_id=None, update_rate=None,
+                 parent=None, origin=None,
+                 camera=None, ray=None, imu=None, magnetometer=None, gps=None,
+                 force_torque=None, contact=None, sonar=None, rfidtag=None, rfid=None):
+        self.name = name
+        self.type = sensor_type
+        self.sensor_id = sensor_id
+        self.update_rate = update_rate
+        self.parent = parent
+        self.origin = origin
+        self.camera = camera
+        self.ray = ray
+        self.imu = imu
+        self.magnetometer = magnetometer
+        self.gps = gps
+        self.force_torque = force_torque
+        self.contact = contact
+        self.sonar = sonar
+        self.rfidtag = rfidtag
+        self.rfid = rfid
+
+    def check_valid(self):
+        assert self.type in self.TYPES, "Invalid sensor type: {}".format(self.type)  # noqa
+
+    # Aliases
+    @property
+    def sensor_type(self): return self.type
+
+    @sensor_type.setter
+    def sensor_type(self, value): self.type = value
+
+xmlr.reflect(Sensor, tag='sensor', params=[
+    name_attribute,
+    xmlr.Attribute('type', str),
+    xmlr.Attribute('id', str, False),
+    xmlr.Attribute('update_rate', float, False),
+    xmlr.Element('parent', 'element_link', False),
+    origin_element,
+    xmlr.Element('camera', SensorCamera, False),
+    xmlr.Element('ray', SensorRay, False),
+    xmlr.Element('imu', SensorIMU, False),
+    xmlr.Element('magnetometer', SensorMagnetometer, False),
+    xmlr.Element('gps', SensorGPS, False),
+    xmlr.Element('force_torque', SensorForceTorque, False),
+    xmlr.Element('contact', SensorContact, False),
+    xmlr.Element('sonar', SensorSonar, False),
+    xmlr.Element('rfidtag', SensorRFIDtag, False),
+    xmlr.Element('rfid', SensorRFID, False),
+])
+
+
 class Robot(xmlr.Object):
     SUPPORTED_VERSIONS = ["1.0"]
 
@@ -498,9 +813,11 @@ class Robot(xmlr.Object):
         self.materials = []
         self.gazebos = []
         self.transmissions = []
+        self.sensors = []
 
         self.joint_map = {}
         self.link_map = {}
+        self.sensor_map = {}
 
         self.parent_map = {}
         self.child_map = {}
@@ -519,12 +836,18 @@ class Robot(xmlr.Object):
         elif typeName == 'link':
             link = elem
             self.link_map[link.name] = link
+        elif typeName == 'sensor':
+            sensor = elem
+            self.sensor_map[sensor.name] = sensor
 
     def add_link(self, link):
         self.add_aggregate('link', link)
 
     def add_joint(self, joint):
         self.add_aggregate('joint', joint)
+
+    def add_sensor(self, sensor):
+        self.add_aggregate('sensor', sensor)
 
     def get_chain(self, root, tip, joints=True, links=True, fixed=True):
         chain = []
@@ -588,7 +911,8 @@ xmlr.reflect(Robot, tag='robot', params=[
     xmlr.AggregateElement('joint', Joint),
     xmlr.AggregateElement('gazebo', xmlr.RawType()),
     xmlr.AggregateElement('transmission', 'transmission'),
-    xmlr.AggregateElement('material', Material)
+    xmlr.AggregateElement('material', Material),
+    xmlr.AggregateElement('sensor', Sensor)
 ])
 
 # Make an alias
