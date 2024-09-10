@@ -148,17 +148,33 @@ class GeometricType(xmlr.ValueType):
 xmlr.add_type('geometric', GeometricType())
 
 
+class ContactCoefficients(xmlr.Object):
+    """ http://docs.ros.org/en/jazzy/Tutorials/Intermediate/URDF/Adding-Physical-and-Collision-Properties-to-a-URDF-Model.html#contact-coefficients """
+    def __init__(self, mu=None, kp=None, kd=None):
+        self.mu = mu
+        self.kp = kp
+        self.kd = kd
+
+xmlr.reflect(ContactCoefficients, tag='contact_coefficients', params=[
+    xmlr.Attribute('mu', float, False, 0),
+    xmlr.Attribute('kp', float, False, 0),
+    xmlr.Attribute('kd', float, False, 0),
+])
+
 class Collision(xmlr.Object):
-    def __init__(self, geometry=None, origin=None, name=None):
+    def __init__(self, geometry=None, origin=None, name=None, contact_coefficients=None):
         self.geometry = geometry
         self.name = name
         self.origin = origin
+        # http://docs.ros.org/en/jazzy/Tutorials/Intermediate/URDF/Adding-Physical-and-Collision-Properties-to-a-URDF-Model.html#contact-coefficients
+        self.contact_coefficients = contact_coefficients
 
 
 xmlr.reflect(Collision, tag='collision', params=[
     xmlr.Attribute('name', str, False),
     origin_element,
-    xmlr.Element('geometry', 'geometric')
+    xmlr.Element('geometry', 'geometric'),
+    xmlr.Element('contact_coefficients', ContactCoefficients, False)
 ])
 
 
