@@ -583,9 +583,9 @@ class RayRange(xmlr.Object):
         self.resolution = resolution
 
 xmlr.reflect(RayRange, tag='range', params=[
-    xmlr.Element('min', float, False, 0),
-    xmlr.Element('max', float, False),
-    xmlr.Element('resolution', float, False),
+    xmlr.Attribute('min', float, False, 0),
+    xmlr.Attribute('max', float, False),
+    xmlr.Attribute('resolution', float, False),
 ])
 
 class SensorRay(xmlr.Object):
