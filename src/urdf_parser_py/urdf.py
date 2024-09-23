@@ -837,6 +837,7 @@ class Robot(xmlr.Object):
 
         self.parent_map = {}
         self.child_map = {}
+        self.sensor_child_map = {}
 
     def add_aggregate(self, typeName, elem):
         xmlr.Object.add_aggregate(self, typeName, elem)
@@ -855,6 +856,10 @@ class Robot(xmlr.Object):
         elif typeName == 'sensor':
             sensor = elem
             self.sensor_map[sensor.name] = sensor
+            if sensor.parent in self.sensor_child_map:
+                self.sensor_child_map[sensor.parent].append(sensor.name)
+            else:
+                self.sensor_child_map[sensor.parent] = [sensor.name]
 
     def add_link(self, link):
         self.add_aggregate('link', link)
